@@ -82,7 +82,7 @@ button.on{background:rgba(255,255,255,.35)}
   border:1px solid rgba(244,239,226,.22);border-radius:10px;padding:9px 11px;cursor:pointer;
   backdrop-filter:blur(6px);box-shadow:0 6px 18px rgba(0,0,0,.28)}
 #bm:hover,#bt1:hover,#bt2:hover,#bt3:hover,#bt4:hover,#nlon:hover{background:rgba(52,44,32,.92);border-color:rgba(244,239,226,.42)}
-#nlon{position:fixed;right:14px;top:236px;z-index:99998;display:block}
+#nlon{position:fixed;right:14px;top:236px;z-index:1000000;display:block}
 #hpk,#hend{position:absolute;right:14px;bottom:calc(94px + env(safe-area-inset-bottom,0px));width:auto;height:auto;border-radius:12px;padding:12px 15px;font:700 12px/1 ui-monospace,monospace;letter-spacing:.06em;color:#fff;background:rgba(28,24,18,.86);border:1px solid #fff6;z-index:18}#hend{bottom:calc(148px + env(safe-area-inset-bottom,0px));background:rgba(130,45,35,.9)}#hpk.on{background:#397b55}
 </style>
 
@@ -965,7 +965,7 @@ Promise.all(preloadImages.map(i=>new Promise(resolve=>{
 }))).then(()=>{last=performance.now();requestAnimationFrame(loop)});
 </script>
 <style>
-#nlover{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;
+#nlover{position:fixed;inset:0;z-index:1000001;display:none;align-items:center;justify-content:center;
   background:rgba(6,9,7,.74);backdrop-filter:blur(5px)}
 #nlcard{width:min(580px,92vw);max-height:86vh;overflow:auto;border-radius:16px;padding:22px 24px;
   background:linear-gradient(165deg,#1a2318,#0f1611);border:1px solid rgba(240,232,210,.16);
