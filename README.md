@@ -7,12 +7,18 @@ NEAR testnet. Single-file HTML game.
 
 ## Sign in, get a wallet
 
-Sign in as guest, or with Google, X or email. The relayer issues that identity a ledger wallet on
-the spot, something like `f208cf54f9f7.players.cozy.testnet`, and hands over a starting basket: 120
-coin, 2 wortel, 2 telur. The same identity always gets the same wallet back.
+Sign in as a guest. That is the only path in this build: there is no OAuth, and the Google and X
+plates on the menu picture are placeholders that sign you in as a guest too. The menu says so, and so
+does the sign-in panel.
+
+The relayer issues your browser a ledger wallet on the spot, something like
+`fbd3a75c23fa.players.cozy.testnet`, and hands over a starting basket: 120 coin, 2 wortel, 2 telur.
+The identity lives in `localStorage`, so reloading keeps the same wallet, and clearing site data or
+using incognito gives you a new one.
 
 The wallet is not a keyed account you can export. It is a balance held in the contract, addressed by
-your sign-in identity, and moved only by the relayer on your behalf.
+your browser's identity, and moved only by the relayer on your behalf. Progress saves to the browser
+as well: same browser, same save and same wallet.
 
 ## What is on chain
 
