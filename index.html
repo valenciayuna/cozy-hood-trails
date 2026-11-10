@@ -1070,6 +1070,11 @@ Promise.all(preloadImages.map(i=>new Promise(resolve=>{
     // anything that is not an agent wallet belongs to the signed-in player
     return SESS ? SESS.wallet : null; }
   function push(body){ queue.push(body); pump(); }
+  function retry(body){
+    // A leg can lose a nonce race. Put it back in front, twice, before dropping it.
+    body.tries = (body.tries || 0) + 1;
+    if(body.tries <= 2) queue.unshift(body);
+  }
   function pump(){
     if(busy || !queue.length) return;
     if(!SESS){ setTimeout(pump, 700); return; }   // no wallet yet, hold the queue
@@ -1082,9 +1087,9 @@ Promise.all(preloadImages.map(i=>new Promise(resolve=>{
       .then(function(j){
         if(j && j.ok){ lastOk = {tx:j.tx, at:Date.now()}; fails = 0;
           window.__lastSettle = j; }
-        else { fails++; }
+        else { fails++; retry(body); }
       })
-      .catch(function(){ fails++; })
+      .catch(function(){ fails++; retry(body); })
       .then(function(){ busy = false; setTimeout(pump, 900); });
   }
   // Which agent actually holds which good. Bu Sari sells produce, Pak Bayu sells fish,
@@ -1096,7 +1101,8 @@ Promise.all(preloadImages.map(i=>new Promise(resolve=>{
     ayam:"joko.testnet", sapi:"joko.testnet", bebek:"joko.testnet", telur:"joko.testnet",
     beras:"joko.testnet", keju:"joko.testnet"
   };
-  function agentFor(token){ return SOURCE[token] || REST; }
+  function tok(t){ return String(t || "").replace(/^rr:/, ""); }   // on-chain ids carry no rr: prefix
+  function agentFor(token){ return SOURCE[tok(token)] || REST; }
   function qty(a){
     var n = Math.abs(Math.round(+a.amount_out || +a.amount_in || +a.amount || 1));
     return Math.max(1, n);
@@ -1110,21 +1116,21 @@ Promise.all(preloadImages.map(i=>new Promise(resolve=>{
       if(args.token_in === "coin"){
         // player buys: coin to the market, goods from the agent that stocks them
         push({from:who, to:REST, token:"coin", amount:n});
-        push({from:agentFor(args.token_out), to:who, token:args.token_out, amount:n});
+        push({from:agentFor(args.token_out), to:who, token:tok(args.token_out), amount:n});
       } else if(args.token_out === "coin"){
         // player sells: goods to the agent, coin back from the same agent
-        push({from:who, to:agentFor(args.token_in), token:args.token_in, amount:n});
+        push({from:who, to:agentFor(args.token_in), token:tok(args.token_in), amount:n});
         push({from:agentFor(args.token_in), to:who, token:"coin", amount:n});
       } else {
-        push({from:who, to:agentFor(args.token_in), token:args.token_in, amount:n});
-        push({from:agentFor(args.token_out), to:who, token:args.token_out, amount:n});
+        push({from:who, to:agentFor(args.token_in), token:tok(args.token_in), amount:n});
+        push({from:agentFor(args.token_out), to:who, token:tok(args.token_out), amount:n});
       }
       return;
     }
     if(method === "mt_transfer"){
       var from = wallet(args.from), to = wallet(args.to);
       if(!from || !to) return;
-      push({from:from, to:to, token:args.token_id, amount:Math.max(1, Math.round(+args.amount||1))});
+      push({from:from, to:to, token:tok(args.token_id), amount:Math.max(1, Math.round(+args.amount||1))});
     }
     // social_login and mt_mint stay local: the relayer key cannot mint on purpose
   };
