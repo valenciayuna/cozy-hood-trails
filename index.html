@@ -1039,18 +1039,43 @@ Promise.all(preloadImages.map(i=>new Promise(resolve=>{
 (function(){
   var RELAYER = "https://climate-functioning-mens-tahoe.trycloudflare.com";
   var REST = "rumah-resto-market-5959.testnet";
-  var POOL = "pemain.resto-market.testnet";   // aggregate wallet for players (not a keyed account)
+  var POOL = null;                             // filled from the session handed out at sign-in
+  var SESS = null, sessTried = false;
+  var IDKEY = "cht-identity";
+  function identity(){
+    try{
+      var v = localStorage.getItem(IDKEY);
+      if(v) return v;
+      var g = "guest:" + Math.random().toString(36).slice(2,10);
+      localStorage.setItem(IDKEY, g);
+      return g;
+    }catch(e){ return "guest:anon" + Date.now().toString(36); }
+  }
+  function boot(){
+    if(sessTried || SESS) return;
+    sessTried = true;
+    fetch(RELAYER + "/session", {method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({identity: identity()})})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(j && j.ok){ SESS = {wallet:j.wallet, token:j.token}; window.RRsess = SESS; sessTried = false; pump(); }
+        else { sessTried = false; setTimeout(boot, 4000); }
+      })
+      .catch(function(){ sessTried = false; setTimeout(boot, 4000); });
+  }
   var KNOWN = {"rumah-resto-market-5959.testnet":REST,"sari.testnet":"sari.testnet",
                "bayu.testnet":"bayu.testnet","joko.testnet":"joko.testnet"};
   var queue = [], busy = false, lastOk = null, fails = 0;
-  function wallet(a){ if(!a) return POOL; var k=String(a); if(KNOWN[k]) return KNOWN[k];
-    // the game names player accounts "<id>.testnet"; everything unknown is pooled
-    return POOL; }
+  function wallet(a){ if(!a) return null; var k=String(a); if(KNOWN[k]) return KNOWN[k];
+    // anything that is not an agent wallet belongs to the signed-in player
+    return SESS ? SESS.wallet : null; }
   function push(body){ queue.push(body); pump(); }
   function pump(){
     if(busy || !queue.length) return;
+    if(!SESS){ setTimeout(pump, 700); return; }   // no wallet yet, hold the queue
     busy = true;
     var body = queue.shift();
+    body.session = SESS.token;
     fetch(RELAYER + "/trade", {method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify(body)})
       .then(function(r){ return r.json(); })
@@ -1062,25 +1087,48 @@ Promise.all(preloadImages.map(i=>new Promise(resolve=>{
       .catch(function(){ fails++; })
       .then(function(){ busy = false; setTimeout(pump, 900); });
   }
+  // Which agent actually holds which good. Bu Sari sells produce, Pak Bayu sells fish,
+  // Pak Joko sells meat and staples. The market wallet holds coin.
+  var SOURCE = {
+    wortel:"sari.testnet", bayam:"sari.testnet", tomat:"sari.testnet", kentang:"sari.testnet",
+    bawang:"sari.testnet", jagung:"sari.testnet", apel:"sari.testnet",
+    ikanmas:"bayu.testnet", udang:"bayu.testnet", cumi:"bayu.testnet", kakap:"bayu.testnet",
+    ayam:"joko.testnet", sapi:"joko.testnet", bebek:"joko.testnet", telur:"joko.testnet",
+    beras:"joko.testnet", keju:"joko.testnet"
+  };
+  function agentFor(token){ return SOURCE[token] || REST; }
+  function qty(a){
+    var n = Math.abs(Math.round(+a.amount_out || +a.amount_in || +a.amount || 1));
+    return Math.max(1, n);
+  }
   window.RRrelay = function(method, args){
     args = args || {};
     if(method === "intent_swap"){
       var who = wallet(args.signer);
+      if(!who) return;
+      var n = qty(args);
       if(args.token_in === "coin"){
-        push({from:who, to:REST, token:"coin", amount:Math.max(1, Math.round(+args.amount_out||0))});
-        push({from:REST, to:who, token:args.token_out, amount:Math.max(1, Math.round(+args.amount_out||0)/5)});
+        // player buys: coin to the market, goods from the agent that stocks them
+        push({from:who, to:REST, token:"coin", amount:n});
+        push({from:agentFor(args.token_out), to:who, token:args.token_out, amount:n});
       } else if(args.token_out === "coin"){
-        push({from:who, to:REST, token:args.token_in, amount:Math.max(1, Math.round(+args.amount_in||0)/5)});
-        push({from:REST, to:who, token:"coin", amount:Math.max(1, Math.round(+args.amount_in||0))});
+        // player sells: goods to the agent, coin back from the same agent
+        push({from:who, to:agentFor(args.token_in), token:args.token_in, amount:n});
+        push({from:agentFor(args.token_in), to:who, token:"coin", amount:n});
+      } else {
+        push({from:who, to:agentFor(args.token_in), token:args.token_in, amount:n});
+        push({from:agentFor(args.token_out), to:who, token:args.token_out, amount:n});
       }
       return;
     }
     if(method === "mt_transfer"){
-      push({from:wallet(args.from), to:wallet(args.to), token:args.token_id,
-            amount:Math.max(1, Math.round(+args.amount||1))});
+      var from = wallet(args.from), to = wallet(args.to);
+      if(!from || !to) return;
+      push({from:from, to:to, token:args.token_id, amount:Math.max(1, Math.round(+args.amount||1))});
     }
-    // mt_mint (NPC production) stays server-side: the relayer key cannot mint on purpose
+    // social_login and mt_mint stay local: the relayer key cannot mint on purpose
   };
+  boot();
   window.RRrelayState = function(){ return {queued:queue.length, busy:busy, fails:fails, last:lastOk}; };
 })();
 </script></body></html>
