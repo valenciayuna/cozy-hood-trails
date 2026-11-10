@@ -5,6 +5,8 @@ NEAR testnet. Single-file HTML game.
 
 **Play:** https://valenciayuna.github.io/cozy-hood-trails/
 
+Hackathon note: this is one of two independent entries by the same builder. The other is [Q-DAY](https://github.com/valenciayuna/q-day), a post-quantum beat 'em up. Different repos, different builds, no shared code.
+
 ## Sign in, get a wallet
 
 Sign in as a guest. That is the only path in this build: there is no OAuth, and the Google and X
