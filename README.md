@@ -24,9 +24,9 @@
   <img src="docs/hero.gif" alt="READY, GO! The restaurant opens for the night" width="720">
 </p>
 
-A fishing, hunting and foraging life sim with a restaurant and a market where every trade is a real
-transaction on NEAR testnet (play money, no real-world value). One HTML file, no install, runs on
-desktop and phone.
+A fishing, hunting and foraging life sim with a restaurant and a market whose prices move on every
+trade. The goods ledger is an NEP-245 contract deployed on NEAR testnet (play money, no real-world
+value). One HTML file, no install, runs on desktop and phone.
 
 **Play:** https://valenciayuna.github.io/cozy-hood-trails/
 
@@ -36,7 +36,8 @@ desktop and phone.
 |---|---|
 | **Morning to evening: gather** | Fish at the dock or the waterfall, sneak into the forest to hunt rabbits, hens, boar and deer, chat with the villagers, take quests from the board, and shop at the Merchant Market. |
 | **18:00: Mama gets ready** | Mama heads to the restaurant to prep. Pick tonight's menu, learn recipes, and decorate. |
-| **19:00 to 23:00: serve** | Hit **Open Restaurant**. Customers arrive in groups, order, and lose patience fast. Grab each dish from Mama and run it to the right table. A rush hour kicks in at 21:00 and gets hectic, with tips for quick service. A full night takes about 2 minutes. |
+| **19:00 to 23:00: serve** | Hit **Open Restaurant**. Customers arrive in groups, order, and lose patience fast. Grab each dish from Mama and run it to the right table. The door queue gets heavier as the night runs, last call is 22:40, and quick service earns tips. A full
+night takes about 2 minutes. |
 | **23:00: shift done** | Collect the night's earnings, tips and a star rating, then head home. Mama tucks you in and sends you to bed. |
 
 ## Screenshots
@@ -64,6 +65,19 @@ desktop and phone.
   <img src="docs/market-combo.jpg" alt="Market Board: swap, pools and economy tabs" width="100%"><br>
   <sub><b>Market Board:</b> a DEX-style swap, liquidity pools for every good, and live economy stats.</sub>
 </p>
+
+## Try it in two minutes
+
+1. Open the game and click **Start**. A `guestNNNN.testnet` identity appears with the starting basket:
+   500 coin, 3 wortel, 2 ikan mas, 6 telur.
+2. Click **MARKET** -> **swap**, pick `wortel`, enter `20`, press the swap button. Do it four times and
+   watch the quoted cost rise (16.4 -> 16.9 -> 17.5 -> 18.1 coin on a fresh guest save): the pool reprices on
+   every trade.
+3. Press **+1 WEEK**. The weekly report shows new prices, the events that fired and what each agent
+   earned.
+4. Click **LEDGER** to read the deployed contract from testnet RPC (`rumah-resto-market-5959.testnet`).
+5. Play a day: gather, then open the restaurant at 19:00 and serve until 23:00. Sleeping saves the day;
+   close the tab and reopen to see it kept.
 
 ## Features
 
@@ -98,8 +112,9 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-Market settlements go to the relayer when it is reachable. If it is not, the game keeps running on
-its local simulation, so a dead endpoint never blocks play.
+Every market trade runs on the local AMM. Settlement is designed to post to the relayer, and until the
+session handshake is added the game stays on its local simulation, so a dead or refusing endpoint
+never blocks play.
 
 ## Sign in, get a wallet
 
@@ -107,31 +122,38 @@ Sign in as a guest. That is the only path in this build: there is no OAuth, and 
 plates on the menu picture are placeholders that sign you in as a guest too. The menu says so, and so
 does the sign-in panel.
 
-The relayer issues your browser a ledger wallet on the spot, something like
-`fbd3a75c23fa.players.cozy.testnet`, and hands over a starting basket: 120 coin, 2 wortel, 2 telur.
-The identity lives in `localStorage`, so reloading keeps the same wallet, and clearing site data or
-using incognito gives you a new one.
+Signing in mints a local player identity, something like `guest3058.testnet`, and a starting basket of
+500 coin, 3 wortel, 2 ikan mas and 6 telur. The identity and the save live in `localStorage`: reloading keeps the same player, and
+clearing site data or using incognito gives you a new one.
 
-The wallet is not a keyed account you can export. It is a balance held in the contract, addressed by
-your browser's identity, and moved only by the relayer on your behalf. Progress saves to the browser
-as well: same browser, same save and same wallet.
+The identity is not a keyed NEAR account and cannot be exported or funded. In this build the balances
+you trade against are held in the browser; the on-chain contract is the ledger the goods are meant to
+settle against (see the status below).
 
 ## What is on chain
 
-| piece | where it lives |
-|---|---|
-| your wallet | contract state, `mt_balance_of` under your issued account |
-| market agents | Bu Sari, Pak Bayu and Pak Joko each hold their own on-chain balance |
-| trades | every buy, sell and stall sale settles with a real transaction |
-| item ledger | `rumah-resto-market-5959.testnet`, NEP-245 multi-token |
-| fast mode | `+1 HOUR`, `18:00`, `+1 WEEK` compress months into minutes |
+| piece | where it lives | status |
+|---|---|---|
+| item ledger | `rumah-resto-market-5959.testnet`, NEP-245 multi-token | deployed and funded on testnet |
+| market agents | Bu Sari, Pak Bayu, Pak Joko, market escrow | wallets listed by the relayer |
+| your wallet | browser identity (`guestNNNN.testnet`) + local save | local to this build |
+| trades | AMM pools in the browser, 0.3% fee, price moves per trade | simulated locally |
+| settlement | `settle` / `mt_transfer` through the relayer | **not enabled in this build** |
+| fast mode | `+1 HOUR`, `18:00`, `+1 WEEK` compress months into minutes | works locally |
 
-Click **LEDGER** in game to read live balances and the transfer trail from testnet RPC.
+Click **LEDGER** in game to read the contract's live state from testnet RPC.
+
+Why settlement is off: the relayer is running (`GET /health` returns the contract, the two allowed
+methods, the agent wallets and the session count), but it only signs a trade that carries a session
+token, and this build does not request one, so every settlement POST comes back
+`401 {"ok":false,"error":"no session"}`. The game keeps playing on its local simulation by design; the
+trade log in game (`intent_swap`, `social_login`) records exactly what would have been sent.
 
 ## How settlement is guarded
 
-The browser never holds a key. It posts `{from, to, token, amount, session}` to the relayer, which
-signs `settle` with a function-call key restricted to `settle` and `mt_transfer` on this contract.
+The browser never holds a key. It is built to post `{from, to, token, amount, session}` to the
+relayer, which signs `settle` with a function-call key restricted to `settle` and `mt_transfer` on
+this contract. The session step is the one missing in this build (see the status table above).
 
 Three rules stop the endpoint from being a tap into the agents' money:
 
@@ -148,12 +170,14 @@ holds them.
 
 ## Honest scope
 
-Your on-chain wallet tracks what you traded. It does not track what you gathered: fish you catch and
-crops you pick live in the browser's save. Selling gathered goods still settles, because the relayer
-credits the goods leg and pays coin, but the chain never saw them arrive.
+Everything you trade in this build is simulated in the browser: the AMM pools, the agent wallets and
+the prices all live in the local save, and nothing is written to the ledger contract yet. What is on
+chain today is the deployed NEP-245 contract and its agent wallets.
 
-There is no per-player NEAR account, no wallet connect and no withdrawal. Supply changes only
-through trades, never through minting.
+Gathered goods are local too: fish you catch and crops you pick live in the browser's save.
+
+There is no per-player NEAR account, no wallet connect and no withdrawal. Supply changes only through
+trades, never through minting.
 
 ## Contract
 

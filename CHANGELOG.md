@@ -16,3 +16,10 @@
 
 ## Earlier
 - Wave-based NPC customers (groups, queueing, patience, tips, rush hour), the Market Board with a DEX-style swap, pools, stalls, agents, economy and ledger, fishing, hunting, quests and recipes, and the NEAR testnet item ledger.
+
+## 2026-11-12 — docs honesty pass
+
+- README now matches the shipped build: trades are simulated in the browser, the NEP-245 ledger
+  contract is deployed, settlement is not enabled (relayer returns 401 without a session).
+- Added the measured starting basket, the pool-repricing numbers and a "Try it in two minutes" block.
+- Added an MIT LICENSE.
