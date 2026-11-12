@@ -30,6 +30,60 @@ value). One HTML file, no install, runs on desktop and phone.
 
 **Play:** https://valenciayuna.github.io/cozy-hood-trails/
 
+## What this is, and the problem it solves
+
+Most cozy sims have a fake market: prices are constants and the shop's money comes from nowhere.
+This one gives all 22 goods a small real market — each good has its own coin pool, prices move on every
+trade, and the shopkeepers are agents with their own wallets that restock, undercut each other and
+arbitrage. You gather by day and run a restaurant by night, so the money the restaurant earns is the
+money the market charges you tomorrow.
+
+## NEAR HACKATHON submission
+
+- **Track:** `games` — Games With Real Economies
+- **Repository:** https://github.com/valenciayuna/cozy-hood-trails (public, MIT)
+- **Demo:** posted on X with the demo video, tagged @NEARProtocol and #NEARHackathon
+- **Sibling entry:** [Q-DAY](https://github.com/valenciayuna/q-day), an independent project in its own
+  repo with no shared code; its README names this one in return (Q-015)
+
+What NEAR does here, concretely:
+
+- the goods ledger is a NEP-245 multi-token contract on testnet
+  (`rumah-resto-market-5959.testnet`), deployed and funded, exposing `mt_transfer`,
+  `mt_batch_transfer`, `mt_balance_of`, `mt_batch_balance_of`, `mt_tokens_for_owner`, `mt_supply`,
+  `recent(n)` and a backend-signed `settle(from, to, token_id, amount)`;
+- every market agent is a wallet (`sari.testnet`, `bayu.testnet`, `joko.testnet` and an escrow), so the
+  economy is meant to settle between accounts instead of inside a database;
+- trades are recorded as intents (`intent_swap` with `token_in`, `token_out`, `amount_in`, `solver`), a
+  shape a solver can route later;
+- sign-in is a one-click guest identity: no wallet extension, no seed phrase, no key in the browser.
+
+One line of status: the contract and the relayer are live, settlement is **not enabled in this build**
+(the section below says why), so the market you play against runs in the browser. This track is judged
+on the game loop, not the token.
+
+### Baseline and what was built during the window (Q-001, Q-003, Q-004)
+
+The first commit in this repository is 2026-11-09, inside the hackathon window (the window opened
+2026-10-19), so there is no pre-hackathon baseline to separate out: every commit here is hackathon
+work. `git log --reverse` starts at `3e35c60`.
+
+### Libraries and disclosure (Q-005)
+
+- No framework, no template, no UI kit. `index.html` is hand-written HTML/CSS/JS drawing to a canvas,
+  with no external script tags and nothing fetched at runtime. Sound is generated with the Web Audio
+  API (no audio files). Two images ship inside the HTML as data URIs: the menu illustration and an
+  NPC sprite sheet; everything else on screen is drawn procedurally.
+- Contract: `near-sdk` 5.30 and `borsh` 1.5. Nothing else.
+- Built with AI coding assistants at the author's direction; the game design, art direction and
+  economy tuning are the author's.
+
+### Reproducing it (for screening)
+
+"Run it locally" and "Try it in two minutes" above are the whole check: open the file, click Start,
+swap one good four times and watch the pool reprice, skip a week, then read the contract from testnet
+RPC. No install, no key, no wallet.
+
 ## A day in the hood
 
 | | |
