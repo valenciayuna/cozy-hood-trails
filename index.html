@@ -912,14 +912,14 @@ function loop(n){
     if(mv){dir=mv;const nx=x+mv*270*dt;if(!blocked(nx,ry))x=nx;else mv=0}const vy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);if((scene==='fish'||scene==='lake'||scene==='hunt'||scene==='interior')&&vy&&!talk&&!shop&&!rest&&$('homepanel').hidden&&!pa&&!MK.open&&!WK.on&&fish.st==='idle'&&!fm.on&&!hm.on){const ny=ry+vy*200*dt;if(!blocked(x,ny)){ry=ny;if(!mv)mv=vy}}else if((scene==='resto'||scene==='town')&&vy&&!talk&&!shop&&!rest&&$('homepanel').hidden&&!pa&&!MK.open&&!WK.on){const lo=scene==='town'?505:430,hi=scene==='town'?600:612;const ny=Math.max(lo,Math.min(hi,ry+vy*200*dt));if(scene!=='resto'||!blocked(x,ny))ry=ny;if(!mv)mv=vy}
     if(!(clock>=PREP_T&&!restoOpen)&&!(splash&&splash.k==='ready')){clock+=dt*(restoOpen?OPEN_RATE:2);if(clock>=PREP_T&&!restoOpen)clock=PREP_T}
      if(restoOpen&&clock>=23*60)endNight();
-     if(clock>=1440){clock-=1440;day++;walked=false;MM.on=false}
+     if(clock>=1440){clock-=1440;day++;walked=false;MM.on=false;try{window.__daySync&&window.__daySync(day)}catch(e){}}
      if(!walked&&clock>=18*60&&!fadeTo&&!talk)startEvening();
     if(scene==='interior'){x=Math.max(100,Math.min(1180,x));ry=Math.max(390,Math.min(675,ry));}
     if(scene!=='interior'&&x<40){ if(scene==='house')go('resto',1200); else if(scene==='town')go('house',1200); else if(scene==='resto')go('fish',1230);else if(scene==='fish')go('hunt',1130);else{x=40;say('Left area not open yet')} }
     if(scene!=='interior'&&scene==='hunt'&&x>1172)go('fish',90);if(scene!=='interior'&&x>(scene==='fish'?1268:1240)){ if(scene==='resto')go('house',80); else if(scene==='house')go('town',80); else if(scene==='fish')go('resto',80); else if(scene!=='hunt'){x=1240;say('Right area not open yet')} }
   }
   if(fadeTo){fade+=dt*3;if(fade>=1&&fadeTo.s){scene=fadeTo.s;x=fadeTo.nx;ry=scene==='town'?560:scene==='fish'?(fadeTo.nx<300?520:598):scene==='lake'?690:scene==='hunt'?486:scene==='interior'?620:545;fixSpawn();talk=null;if(scene==='interior'&&nightDone){hint='Mama: You worked hard tonight, sweetie. Go to bed now 😴';hintT=4.5}fadeTo.s=null}if(fade>=2){fadeTo=null;fade=0}}
-  if(sleeping){sleeping+=dt;if(sleeping>3.2){sleeping=0;day++;clock=6*60;walked=false;MM.on=false;MM.leaving=false;MM.walking=false;nightDone=false;sfx.wake()}}
+  if(sleeping){sleeping+=dt;if(sleeping>3.2){sleeping=0;day++;clock=6*60;walked=false;MM.on=false;MM.leaving=false;MM.walking=false;nightDone=false;sfx.wake();try{window.__daySync&&window.__daySync(day)}catch(e){}}}
   if(hintT>0)hintT-=dt;if(mamaTalk>=0&&(scene!=='interior'||(homeTarget()||{}).k!=='mama')){mamaTalk=-1;if(String(hint).startsWith('Mama:'))hintT=0}
   if(MM.on&&MM.walking){if(MM.leaving){if(MMY<MMW)MMY=Math.min(MMW,MMY+130*dt);else{MM.x+=230*dt;if(MM.x>=1270){MM.on=false;MM.walking=false;MM.leaving=false}}}else{if(MM.x>S.resto.door){MM.x-=230*dt;if(MM.x<=S.resto.door)MM.x=S.resto.door}else{MMY=Math.max(MMK,MMY-130*dt);if(MMY<=MMK)MM.walking=false}}}if(restoOpen&&!(splash&&splash.k==='ready'))sim(dt);lvTick(dt);splashTick(dt);if(cooking&&cookJob&&scene==='resto'&&!sleeping){chopT-=dt;if(chopT<=0){sfx.chop();chopT=CHP[chopI++%CHP.length]}}else chopT=0;fishTick(dt);fmTick(dt);hmTick(dt);
   if(mv&&!fadeTo&&!sleeping&&!talk&&!shop&&!rest){stepT-=dt;if(stepT<=0){stepT=.28;sfx.step(scene)}}else stepT=0;draw(mv);requestAnimationFrame(loop)}
@@ -1003,7 +1003,7 @@ if(!ECO.ag.length)ECO.ag=[
  A('warga','Villager','🏘️','Consumer',[],ALL,{inc:8,nb:2,c:800}),
  A('tua','Old Tycoon','🧐','Arbitrageur',[],[],{c:900})];
 IT.forEach(i=>{if(!(i.id in ECO.pm))ECO.pm[i.id]=1;const p=pool[i.id];p.cR0=i.p*ECO.pm[i.id]*p.iR0;p.cR=p.cR0});
-ECO.hist=[];ECO.day=day;ECO.ls.forEach(l=>l.d=day);
+ECO.hist=[];if(ECO.day>day){day=ECO.day}else{ECO.day=day}ECO.ls.forEach(l=>l.d=day);
 const AG=id=>ECO.ag.find(a=>a.id===id);
 const chain=(method,args)=>{ECO.log.push({d:day,method,args});if(ECO.log.length>60)ECO.log.shift();try{window.RRrelay&&window.RRrelay(method,args)}catch(e){}}; // TODO deploy: send to the NEP-245 contract / NEAR Intents when NEAR_CFG.mock=false
 const cpi=()=>Math.round(IT.reduce((s,i)=>s+px(i.id)/i.p,0)/IT.length*100);
@@ -1145,7 +1145,7 @@ $('wk').addEventListener('click',e=>{if(e.target.id==='wgo'){WK.on=false;$('wk')
 $('bt3').addEventListener('pointerdown',e=>{e.preventDefault();skipWeek()});
 /* ---- real-time tick & hook ---- */
 const tickReal=()=>{if(WK.on)return;step();while(ECO.day<day){ECO.day++;dayStep()}esave()};
-setInterval(tickReal,30000);
+setInterval(tickReal,30000);try{if(ECO.day>day){day=ECO.day;clock=6*60}}catch(e){}window.__daySync=d=>{try{if(typeof d==='number')day=d;ECO.day=day;esave();if(typeof save==='function')save()}catch(e){}};addEventListener('pagehide',()=>{try{window.__daySync(day)}catch(e){}});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){try{window.__daySync(day)}catch(e){}}});
 if(!ECO.ls.length)for(let k=0;k<30;k++)step();
 window.chainSwap=(mode,id,n)=>{chain('intent_swap',{signer:ECO.acct,token_in:mode==='buy'?'coin':tid(id),token_out:mode==='buy'?tid(id):'coin',amount:String(n),solver:'pool'});bump(mode==='buy'?ECO.dem:ECO.sup,id,n);esave()};
 const _d=draw;draw=function(m){_d(m);if(ECO.ev&&!MK.open&&!WK.on){g.fillStyle='rgba(0,0,0,.5)';g.fillRect(430,14,420,34);g.font='bold 18px system-ui';g.textAlign='center';g.fillStyle='#ffd34d';g.fillText(ECO.ev.e+' '+ECO.ev.t,640,38);g.textAlign='left'}};
