@@ -32,3 +32,10 @@
 - Settlement from this build still fails (`401 no session`); the "403 not your wallet" rule is labelled
   as relayer design, not as a verified claim.
 - Dropped "market escrow" — it appears in the relayer's list but is not a deployed testnet account.
+
+## 2026-11-12 — menu music without starting the game
+
+- The menu music now tries to start on page load instead of waiting for a click.
+- When the browser blocks autoplay, a "♫ Tap untuk musik" chip appears over the menu: one tap starts
+  the music and stays on the menu. Tapping anything that is not a menu entry unlocks it too.
+- The "♫ MUSIC ON / OFF" pill is now clickable at z-index above the menu art and updates its label.

@@ -97,7 +97,10 @@ button.on{background:rgba(255,255,255,.35)}
 #mainmenu .guest{left:60%;top:55%;width:30%;height:13%}
 #mainmenu .google{left:60%;top:71.5%;width:15%;height:12%}
 #mainmenu .xlogin{left:75.5%;top:71.5%;width:15%;height:12%}
-#mainmenu #menuSound{position:fixed;right:12px;top:12px;width:auto;height:auto;border-radius:999px;padding:8px 12px;font:700 11px system-ui,sans-serif;letter-spacing:.06em;color:#fff;background:#642b3dcc;border:1px solid #fff9;z-index:2;box-shadow:0 3px 12px #5c1b2d55}
+#mainmenu #menuSound{position:fixed;right:12px;top:12px;width:auto;height:auto;border-radius:999px;padding:8px 12px;font:700 11px system-ui,sans-serif;letter-spacing:.06em;color:#fff;background:#642b3dcc;border:1px solid #fff9;z-index:3;box-shadow:0 3px 12px #5c1b2d55}
+#mainmenu #audioHint{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:auto;height:auto;border-radius:999px;padding:10px 16px;font:700 12px system-ui,sans-serif;letter-spacing:.04em;color:#fff;background:#642b3df2;border:1px solid #fff;z-index:3;box-shadow:0 6px 22px #2a0d16aa;animation:audioPulse 1.8s ease-in-out infinite}
+@keyframes audioPulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.05)}}
+#mainmenu #audioHint[hidden]{display:none}
 @media (max-aspect-ratio: 4/5){#mainmenu .menu-art{width:100vw}}
 /* Game title on the main menu (sits above the Start button) */
 #mainmenu .menu-title{--w:min(100vw,177.685vh);position:absolute;left:52%;top:5%;width:44%;margin:0;padding:0;text-align:center;pointer-events:none;user-select:none;font-family:"Arial Rounded MT Bold","Baloo 2","Fredoka","Nunito","Trebuchet MS",system-ui,sans-serif;font-weight:900;line-height:.92;color:#fff8ee;letter-spacing:.01em}
@@ -122,6 +125,7 @@ button.on{background:rgba(255,255,255,.35)}
   <button class="menu-hit xlogin" id="menuX" aria-label="Login with X"></button>
  </div>
  <button id="menuSound" aria-label="Toggle menu music">♫ MUSIC ON</button>
+ <button id="audioHint" aria-label="Tap to start the music">♫ Tap untuk musik</button>
 </div>
 
 <div id="lg" hidden><div class="sp"><div style="font-size:56px">🏘️</div><b style="font-size:22px">House &amp; Resto</b><p class="rh">Sign in with a social account or email. No seed phrase, no wallet popups.</p><button id="lgg">🔵 Continue with Google</button><button id="lge">✉️ Continue with Email</button><button id="lgx" style="font-size:14px;background:none">Play as guest</button></div></div>
@@ -1112,6 +1116,33 @@ $('menuGuest').addEventListener('click',()=>enterGame('guest'));
 $('menuGoogle').addEventListener('click',()=>enterGame('google'));
 $('menuX').addEventListener('click',()=>enterGame('x'));
 $('menuSound').addEventListener('click',()=>{initAudio();muted=!muted;if(MG)MG.gain.setTargetAtTime(muted?0:1,AC.currentTime,.05);$('menuSound').textContent=muted?'♫ MUSIC OFF':'♫ MUSIC ON';$('bm').textContent=muted?'🔇':'🔊'});
+
+/* ---- menu music: try to start on load, and offer one tap that does not start the game ---- */
+const audioHint = $('audioHint');
+function audioLive(){ return !!(AC && AC.state === 'running' && !muted) }
+function hideAudioHint(){ if (audioHint && audioLive()) audioHint.hidden = true }
+function startMenuAudio(){
+  try{
+    initAudio();
+    if (AC && AC.state === 'suspended' && !muted) AC.resume();
+    setTimeout(hideAudioHint, 120);
+  }catch(e){}
+}
+try{ startMenuAudio() }catch(e){}
+if (audioHint){
+  audioHint.addEventListener('pointerdown', e=>{ e.preventDefault(); e.stopPropagation(); startMenuAudio(); });
+  audioHint.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); startMenuAudio(); });
+}
+/* any tap outside the menu entries unlocks the music and leaves the menu alone */
+document.addEventListener('pointerdown', e=>{
+  const t = e.target;
+  if (t && t.closest && (t.closest('.menu-hit') || t.closest('#lg') || t.closest('#audioHint'))) return;
+  startMenuAudio();
+}, true);
+addEventListener('keydown', startMenuAudio, true);
+setTimeout(hideAudioHint, 300);
+setTimeout(hideAudioHint, 1200);
+setInterval(hideAudioHint, 1500);
 // Always open on the main menu, even if a previous player account is saved.
 $('mainmenu').hidden=false;$('lg').hidden=true;$('mk').hidden=true;MK.open=false;$('bm').hidden=true;
 /* ---- skip 1 week ---- */
