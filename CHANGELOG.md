@@ -39,3 +39,8 @@
 - When the browser blocks autoplay, a "♫ Tap untuk musik" chip appears over the menu: one tap starts
   the music and stays on the menu. Tapping anything that is not a menu entry unlocks it too.
 - The "♫ MUSIC ON / OFF" pill is now clickable at z-index above the menu art and updates its label.
+
+## 2026-11-12 — controls spelled out
+
+- README controls are now a PC keyboard table (WASD + arrows, E/Space/Enter, T, M, Esc, hunting peek
+  and aim, fishing cast) plus a phone section, all taken from the key handlers in the build.

@@ -147,16 +147,36 @@ night takes about 2 minutes. |
 
 ## Controls
 
-| Action | Keyboard | Phone |
-|---|---|---|
-| Move | `A` `D` or arrow keys (`W` `S` to move up and down where there is depth) | on-screen pad |
-| Interact, talk, serve | `E`, `Space` or `Enter` | `E` button |
-| Skip one hour | `T` | `+1 HOUR` |
-| Market Board | `M` | `MARKET` |
-| Hunting: peek | hold `Space` or `P` | `PEEK` |
-| Hunting: aim and shoot | `W` `A` `S` `D` or arrows to aim, `E` or `Enter` to shoot | on-screen pad and `E` |
-| Fishing: cast and reel | `E` | `E` button |
-| Leave a minigame | `Esc` | `DONE` / `END HUNT` |
+Everything works with a keyboard on a PC and with the on-screen pad on a phone. Nothing needs a mouse,
+but the buttons on screen are clickable too.
+
+### PC (keyboard)
+
+| What you want to do | Keys |
+|---|---|
+| Walk left / right | `A` / `D`, or `←` / `→` |
+| Walk up / down a depth lane (town, house, restaurant floor) | `W` / `S`, or `↑` / `↓` |
+| Interact: talk, open a door, pick up, grab a dish, serve a plate | `E`, `Space` or `Enter` |
+| Skip one hour | `T` |
+| Jump straight to 18:00 (Mama starts prepping) | the `18:00` button |
+| Jump a whole week (market report) | the `+1 WEEK` button |
+| Open / close the Market Board | `M` |
+| Close a panel, leave fishing or hunting | `Esc` |
+| Fishing: cast, then reel in when the ❗ appears | `E` |
+| Hunting: stay hidden / peek out | hold `Space` or `P` |
+| Hunting: aim | `W` `A` `S` `D`, or the arrow keys |
+| Hunting: shoot | `E` or `Enter` |
+| Mute everything | the speaker button in the corner |
+
+Movement is held, not tapped: keep `D` pressed to keep walking. In hunting the same keys steer the
+crosshair instead of the player.
+
+### Phone
+
+- On-screen pad on the left: `◀ ▶` to walk, `▲ ▼` to change depth, and in hunting to aim.
+- `E` button: interact, cast, reel, shoot.
+- `PEEK` (hold) while hunting, `DONE` / `END HUNT` to leave a minigame.
+- The HUD buttons `+1 HOUR`, `18:00`, `+1 WEEK`, `MARKET` and the speaker do the same as the keys.
 
 ## Run it locally
 
