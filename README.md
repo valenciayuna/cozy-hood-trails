@@ -192,7 +192,7 @@ settle against (see the status below).
 | item ledger | `rumah-resto-market-5959.testnet`, NEP-245 multi-token, deployed and funded | `view_account` on testnet RPC |
 | goods on chain | 18 token ids with live supply (`coin` 6700, `telur` 100, `beras` 80, `wortel` 40, ...) | `totals()` |
 | market agents | `sari.testnet`, `bayu.testnet` and `joko.testnet` exist and hold token balances (Sari: apel, bawang, bayam, coin, ikanmas, jagung, kentang, telur, tomat) | `mt_tokens_for_owner` |
-| ledger history | 30 entries in `recent()`, last one 2026-11-11 22:02 UTC; 23 of them are transfers to player accounts such as `ce5704793188.players.cozy.testnet` | `recent(30)` |
+| ledger history | 30 entries in `recent()`, last one 2026-11-11 22:11 UTC; 23 of them are transfers to player accounts such as `ce5704793188.players.cozy.testnet` | `recent(30)` |
 | your wallet in this build | `guestNNNN.testnet` identity in `localStorage`, balances in the local save | in game, sign in as guest |
 | trades in this build | AMM pools in the browser, 0.3% fee, price moves on every trade | swap the same good four times |
 | settlement from this build | **not enabled**: the relayer answers `401 {"ok":false,"error":"no session"}` | POST to the relayer's `/trade` |
