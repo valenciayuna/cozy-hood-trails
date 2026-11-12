@@ -52,8 +52,9 @@ What NEAR does here, concretely:
   (`rumah-resto-market-5959.testnet`), deployed and funded, exposing `mt_transfer`,
   `mt_batch_transfer`, `mt_balance_of`, `mt_batch_balance_of`, `mt_tokens_for_owner`, `mt_supply`,
   `recent(n)` and a backend-signed `settle(from, to, token_id, amount)`;
-- every market agent is a wallet (`sari.testnet`, `bayu.testnet`, `joko.testnet` and an escrow), so the
-  economy is meant to settle between accounts instead of inside a database;
+- every market agent is a real testnet account holding its own goods: `sari.testnet` (produce and
+  staples), `bayu.testnet` (fish), `joko.testnet` (meat and staples) — checked with
+  `mt_tokens_for_owner`, so the economy settles between accounts instead of inside a database;
 - trades are recorded as intents (`intent_swap` with `token_in`, `token_out`, `amount_in`, `solver`), a
   shape a solver can route later;
 - sign-in is a one-click guest identity: no wallet extension, no seed phrase, no key in the browser.
@@ -186,22 +187,22 @@ settle against (see the status below).
 
 ## What is on chain
 
-| piece | where it lives | status |
+| piece | what is actually there | how to check it |
 |---|---|---|
-| item ledger | `rumah-resto-market-5959.testnet`, NEP-245 multi-token | deployed and funded on testnet |
-| market agents | Bu Sari, Pak Bayu, Pak Joko, market escrow | wallets listed by the relayer |
-| your wallet | browser identity (`guestNNNN.testnet`) + local save | local to this build |
-| trades | AMM pools in the browser, 0.3% fee, price moves per trade | simulated locally |
-| settlement | `settle` / `mt_transfer` through the relayer | **not enabled in this build** |
-| fast mode | `+1 HOUR`, `18:00`, `+1 WEEK` compress months into minutes | works locally |
+| item ledger | `rumah-resto-market-5959.testnet`, NEP-245 multi-token, deployed and funded | `view_account` on testnet RPC |
+| goods on chain | 18 token ids with live supply (`coin` 6700, `telur` 100, `beras` 80, `wortel` 40, ...) | `totals()` |
+| market agents | `sari.testnet`, `bayu.testnet` and `joko.testnet` exist and hold token balances (Sari: apel, bawang, bayam, coin, ikanmas, jagung, kentang, telur, tomat) | `mt_tokens_for_owner` |
+| ledger history | 30 entries in `recent()`, last one 2026-11-11 22:02 UTC; 23 of them are transfers to player accounts such as `ce5704793188.players.cozy.testnet` | `recent(30)` |
+| your wallet in this build | `guestNNNN.testnet` identity in `localStorage`, balances in the local save | in game, sign in as guest |
+| trades in this build | AMM pools in the browser, 0.3% fee, price moves on every trade | swap the same good four times |
+| settlement from this build | **not enabled**: the relayer answers `401 {"ok":false,"error":"no session"}` | POST to the relayer's `/trade` |
 
 Click **LEDGER** in game to read the contract's live state from testnet RPC.
 
-Why settlement is off: the relayer is running (`GET /health` returns the contract, the two allowed
-methods, the agent wallets and the session count), but it only signs a trade that carries a session
-token, and this build does not request one, so every settlement POST comes back
-`401 {"ok":false,"error":"no session"}`. The game keeps playing on its local simulation by design; the
-trade log in game (`intent_swap`, `social_login`) records exactly what would have been sent.
+So the ledger is real and it has settled before: those `players.cozy.testnet` wallets in the trail are
+from the build that issued them. The build in this repo asks for a guest identity and never requests a
+session token, so its trades stay in the browser. The game is built to keep playing when the endpoint
+refuses; the in-game log (`intent_swap`, `social_login`) records what would have been sent.
 
 ## How settlement is guarded
 
@@ -209,14 +210,17 @@ The browser never holds a key. It is built to post `{from, to, token, amount, se
 relayer, which signs `settle` with a function-call key restricted to `settle` and `mt_transfer` on
 this contract. The session step is the one missing in this build (see the status table above).
 
-Three rules stop the endpoint from being a tap into the agents' money:
+The relayer is designed to enforce three rules:
 
 - a request must carry a valid session token
 - your own wallet has to be one side of the trade
 - the other side must be an agent wallet, and agent-to-agent trades are refused
 
-So a crafted request like `{from: sari.testnet, to: me}` comes back `403 not your wallet`, and the
-relayer key cannot mint, so it cannot inflate supply.
+What is verified from outside today: a request with no session comes back
+`401 {"ok":false,"error":"no session"}`, and `mt_mint` asserts the owner, so a relayer key restricted to
+`settle` and `mt_transfer` cannot mint new supply. The wallet-side rule (`403 not your wallet`) is the
+relayer's own logic and is not reachable without a session, so treat it as design, not as a tested
+claim.
 
 Where goods come from: Bu Sari stocks produce, Pak Bayu stocks fish, Pak Joko stocks meat and
 staples. A purchase moves coin to the market wallet and the goods from whichever agent actually
@@ -224,9 +228,10 @@ holds them.
 
 ## Honest scope
 
-Everything you trade in this build is simulated in the browser: the AMM pools, the agent wallets and
-the prices all live in the local save, and nothing is written to the ledger contract yet. What is on
-chain today is the deployed NEP-245 contract and its agent wallets.
+Everything you trade in this build is simulated in the browser: the AMM pools, your balances and the
+prices all live in the local save, and nothing is written to the ledger while the session handshake is
+missing. What is on chain today is the deployed NEP-245 contract, 18 goods with supply, the three agent
+accounts with their own balances, and the transfer trail left by an earlier build.
 
 Gathered goods are local too: fish you catch and crops you pick live in the browser's save.
 

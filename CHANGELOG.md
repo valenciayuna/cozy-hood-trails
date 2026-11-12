@@ -23,3 +23,12 @@
   contract is deployed, settlement is not enabled (relayer returns 401 without a session).
 - Added the measured starting basket, the pool-repricing numbers and a "Try it in two minutes" block.
 - Added an MIT LICENSE.
+
+## 2026-11-12 — chain claims re-checked against testnet
+
+- The ledger is not empty: `totals()` reports 18 goods with supply, the three agent accounts hold
+  token balances, and `recent(30)` shows transfers up to 2026-11-11 22:02 UTC, 23 of them to
+  `*.players.cozy.testnet` player wallets. README now states that instead of implying nothing settled.
+- Settlement from this build still fails (`401 no session`); the "403 not your wallet" rule is labelled
+  as relayer design, not as a verified claim.
+- Dropped "market escrow" — it appears in the relayer's list but is not a deployed testnet account.
