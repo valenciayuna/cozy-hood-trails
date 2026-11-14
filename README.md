@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="docs/banner.png" alt="Cozy Hood Trails: fish, hunt and forage by day, run a packed restaurant by night" width="100%">
+  <img src="docs/banner.png" alt="Cozy Hood Trails: fish and hunt by day, run a packed restaurant by night" width="100%">
 </p>
 
 <h1 align="center">Cozy Hood Trails</h1>
 
 <p align="center">
-  <b>Fish, hunt and forage by day. Cook and serve a packed restaurant by night.</b><br>
+  <b>Fish and hunt by day. Cook and serve a packed restaurant by night.</b><br>
   A cozy life sim with a living market, playable right in your browser.
 </p>
 
@@ -24,7 +24,7 @@
   <img src="docs/hero.gif" alt="READY, GO! The restaurant opens for the night" width="720">
 </p>
 
-A fishing, hunting and foraging life sim with a restaurant and a market whose prices move on every
+A fishing and hunting life sim with a restaurant and a market whose prices move on every
 trade. The goods ledger is an NEP-245 contract deployed on NEAR testnet (play money, no real-world
 value). One HTML file, no install, runs on desktop and phone.
 
@@ -178,6 +178,18 @@ crosshair instead of the player.
 - `PEEK` (hold) while hunting, `DONE` / `END HUNT` to leave a minigame.
 - The HUD buttons `+1 HOUR`, `18:00`, `+1 WEEK`, `MARKET` and the speaker do the same as the keys.
 
+## In development
+
+This is a demo build. The following are planned and **not in the build yet**:
+
+| Planned | Status |
+|---|---|
+| Foraging mode (gather crops/berries in the forest) | not implemented |
+| Mining | not implemented |
+| Player lobby / multiplayer gathering | not implemented |
+| Real wallet login (today: mock guest identity) | not implemented |
+| On-chain settlement via the relayer | not enabled (see the status table above) |
+
 ## Run it locally
 
 No build step. Open `index.html` in a browser, or serve the folder:
@@ -253,7 +265,8 @@ prices all live in the local save, and nothing is written to the ledger while th
 missing. What is on chain today is the deployed NEP-245 contract, 18 goods with supply, the three agent
 accounts with their own balances, and the transfer trail left by an earlier build.
 
-Gathered goods are local too: fish you catch and crops you pick live in the browser's save.
+Gathered goods are local too: fish you catch and animals you hunt live in the browser's save.
+Ingredients you buy at the market are in the same save.
 
 There is no per-player NEAR account, no wallet connect and no withdrawal. Supply changes only through
 trades, never through minting.
