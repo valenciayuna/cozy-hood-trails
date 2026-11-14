@@ -24,19 +24,18 @@
   <img src="docs/hero.gif" alt="READY, GO! The restaurant opens for the night" width="720">
 </p>
 
-A fishing and hunting life sim with a restaurant and a market whose prices move on every
-trade. The goods ledger is an NEP-245 contract deployed on NEAR testnet (play money, no real-world
-value). One HTML file, no install, runs on desktop and phone.
+Play as a fisher and hunter by day, then run a restaurant by night. The game's 22-goods market
+changes prices with every trade, and the restaurant's earnings fund your market purchases the next day.
 
 **Play:** https://valenciayuna.github.io/cozy-hood-trails/
 
 ## What this is, and the problem it solves
 
-Most cozy sims have a fake market: prices are constants and the shop's money comes from nowhere.
-This one gives all 22 goods a small real market — each good has its own coin pool, prices move on every
-trade, and the shopkeepers are agents with their own wallets that restock, undercut each other and
-arbitrage. You gather by day and run a restaurant by night, so the money the restaurant earns is the
-money the market charges you tomorrow.
+Most cozy sims have a fake market: prices stay fixed and the shop's money comes from nowhere.
+This one gives all 22 goods a small real market: each good has its own coin pool, prices shift with every
+trade, and the shopkeepers are agents with their own wallets who restock, undercut each other, and
+arbitrage. You fish and hunt by day, then run a restaurant by night. The restaurant's earnings fund
+your market purchases the next day.
 
 ## NEAR HACKATHON submission
 
@@ -52,48 +51,47 @@ What NEAR does here, concretely:
   (`rumah-resto-market-5959.testnet`), deployed and funded, exposing `mt_transfer`,
   `mt_batch_transfer`, `mt_balance_of`, `mt_batch_balance_of`, `mt_tokens_for_owner`, `mt_supply`,
   `recent(n)` and a backend-signed `settle(from, to, token_id, amount)`;
-- every market agent is a real testnet account holding its own goods: `sari.testnet` (produce and
-  staples), `bayu.testnet` (fish), `joko.testnet` (meat and staples) — checked with
-  `mt_tokens_for_owner`, so the economy settles between accounts instead of inside a database;
+- Market agents are real testnet accounts holding their own goods: `sari.testnet` (produce and
+  staples), `bayu.testnet` (fish), and `joko.testnet` (meat and staples). Their holdings are
+  verifiable with `mt_tokens_for_owner`, so the ledger records transfers between accounts rather
+  than activity in a database;
 - trades are recorded as intents (`intent_swap` with `token_in`, `token_out`, `amount_in`, `solver`), a
   shape a solver can route later;
 - sign-in is a one-click guest identity: no wallet extension, no seed phrase, no key in the browser.
 
-One line of status: the contract and the relayer are live, settlement is **not enabled in this build**
-(the section below says why), so the market you play against runs in the browser. This track is judged
-on the game loop, not the token.
+The contract is deployed and funded. Settlement is **not enabled in this build** (see below), so the
+market you play against runs in the browser. This track is judged on the game loop, not the token.
 
 ### Baseline and what was built during the window (Q-001, Q-003, Q-004)
 
-The first commit in this repository is 2026-11-09, inside the hackathon window (the window opened
-2026-10-19), so there is no pre-hackathon baseline to separate out: every commit here is hackathon
+The first commit in this repository dates to 2026-11-09, within the hackathon window (which opened
+2026-10-19), so there is no pre-hackathon baseline to compare against: every commit here is hackathon
 work. `git log --reverse` starts at `3e35c60`.
 
 ### Libraries and disclosure (Q-005)
 
-- No framework, no template, no UI kit. `index.html` is hand-written HTML/CSS/JS drawing to a canvas,
-  with no external script tags and nothing fetched at runtime. Sound is generated with the Web Audio
-  API (no audio files). Two images ship inside the HTML as data URIs: the menu illustration and an
-  NPC sprite sheet; everything else on screen is drawn procedurally.
+- No framework, template, or UI kit. `index.html` is hand-written HTML/CSS/JS rendered on a canvas;
+  it has no external script tags and fetches nothing at runtime. Sound is generated with the Web Audio
+  API (no audio files). Two images are embedded in the HTML as data URIs: the menu illustration and
+  an NPC sprite sheet. Everything else on screen is drawn procedurally.
 - Contract: `near-sdk` 5.30 and `borsh` 1.5. Nothing else.
 - Built with AI coding assistants at the author's direction; the game design, art direction and
   economy tuning are the author's.
 
 ### Reproducing it (for screening)
 
-"Run it locally" and "Try it in two minutes" above are the whole check: open the file, click Start,
-swap one good four times and watch the pool reprice, skip a week, then read the contract from testnet
-RPC. No install, no key, no wallet.
+"Run it locally" and "Try it in two minutes" above are the full screening walkthrough: open the file,
+click Start, swap the same good four times and watch its pool price change, advance one week, then
+read the contract through the testnet RPC. No installation, key, or wallet is needed.
 
 ## A day in the hood
 
-| | |
+| Time | What happens |
 |---|---|
-| **Morning to evening: gather** | Fish at the dock or the waterfall, sneak into the forest to hunt rabbits, hens, boar and deer, chat with the villagers, take quests from the board, and shop at the Merchant Market. |
-| **18:00: Mama gets ready** | Mama heads to the restaurant to prep. Pick tonight's menu, learn recipes, and decorate. |
-| **19:00 to 23:00: serve** | Hit **Open Restaurant**. Customers arrive in groups, order, and lose patience fast. Grab each dish from Mama and run it to the right table. The door queue gets heavier as the night runs, last call is 22:40, and quick service earns tips. A full
-night takes about 2 minutes. |
-| **23:00: shift done** | Collect the night's earnings, tips and a star rating, then head home. Mama tucks you in and sends you to bed. |
+| **Morning to evening: fish and hunt** | Fish at the dock or waterfall, sneak into the forest to hunt rabbits, hens, boar, and deer, chat with villagers, take quests from the board, and shop at the Merchant Market. |
+| **18:00: Mama gets ready** | Mama heads to the restaurant to prep. Choose tonight's menu, learn recipes, and decorate. |
+| **19:00–23:00: serve** | Press **Open Restaurant**. Customers arrive in groups, place orders, and quickly lose patience. Pick up each dish from Mama and deliver it to the right table. The door queue grows as the night goes on; last call is at 22:40, and fast service earns tips. A full night takes about 2 minutes. |
+| **23:00: shift ends** | Collect the night's earnings, tips, and star rating, then head home. Mama tucks you in for the night. |
 
 ## Screenshots
 
@@ -123,64 +121,65 @@ night takes about 2 minutes. |
 
 ## Try it in two minutes
 
-1. Open the game and click **Start**. A `guestNNNN.testnet` identity appears with the starting basket:
-   500 coin, 3 wortel, 2 ikan mas, 6 telur.
-2. Click **MARKET** -> **swap**, pick `wortel`, enter `20`, press the swap button. Do it four times and
-   watch the quoted cost rise (16.4 -> 16.9 -> 17.5 -> 18.1 coin on a fresh guest save): the pool reprices on
-   every trade.
-3. Press **+1 WEEK**. The weekly report shows new prices, the events that fired and what each agent
-   earned.
-4. Click **LEDGER** to read the deployed contract from testnet RPC (`rumah-resto-market-5959.testnet`).
-5. Play a day: gather, then open the restaurant at 19:00 and serve until 23:00. Sleeping saves the day;
-   close the tab and reopen to see it kept.
+1. Open the game and click **Start**. Your guest identity will look like `guestNNNN.testnet`, and
+   your starting basket contains 500 coins, 3 carrots, 2 carp, and 6 eggs.
+2. Click **MARKET** → **swap**, select `wortel` (carrots), enter `20`, and press the swap button. Repeat four
+   times and watch the quoted cost rise (16.4 → 16.9 → 17.5 → 18.1 coins on a fresh guest save):
+   the pool reprices after every trade.
+3. Press **+1 WEEK**. The weekly report shows updated prices, triggered events, and each agent's
+   earnings.
+4. Click **LEDGER** to read the deployed contract from the NEAR testnet RPC
+   (`rumah-resto-market-5959.testnet`).
+5. Play a day: fish and hunt, then open the restaurant at 19:00 and serve until 23:00. Sleeping
+   saves your progress; close and reopen the tab to check that it persists.
 
 ## Features
 
-- **Restaurant sim.** 4 menu slots, 10 dishes (2 free staples plus 8 learnable recipes), table decor, order timers, tips, a nightly summary and a star rating. Customers come in waves, fill tables and queue at the door when the place is full.
-- **Fishing.** Cast, wait, reel in. Bait raises rare-fish odds, and the waterfall spot is the best place for arowana. Grill your catch at the campfire and serve it at the restaurant.
-- **Hunting.** Hide, peek and shoot at rabbits, hens, boar and deer. The animals get spooked if you stay exposed too long or miss.
-- **A real little economy.** 22 goods, each with its own coin pool and a 0.3% fee. Prices move with every trade, goods-to-goods swaps route through two pools, and random events (bumper harvest, drought, sea storm, livestock plague, village festival, trade ship) shake things up.
-- **Market agents.** Bu Sari, Pak Bayu, Pak Joko and friends produce, shop, list stalls and arbitrage on their own wallets. Put your own goods on a stall and see who buys.
-- **Fast mode.** `+1 HOUR`, `18:00` and `+1 WEEK` skip ahead, and the weekly report shows price changes, events and how each agent did.
-- **Day and night.** The world darkens at dusk, Mama has her own daily routine, and your progress saves in the browser.
-- **Fully synthesized audio.** The menu, town, lake, forest and restaurant music, the sound effects and even the villagers' voices are generated live with the Web Audio API. There are no audio files.
+- **Restaurant sim.** 4 menu slots, 10 dishes (2 free staples and 8 recipes to learn), table decor, order timers, tips, a nightly summary, and a star rating. Customers arrive in waves, fill tables, and queue at the door when the restaurant is full.
+- **Fishing.** Cast, wait, and reel in your catch. Bait improves your odds of finding rare fish, and the waterfall is the best spot for arowana. Grill your catch at the campfire and serve it at the restaurant.
+- **Hunting.** Hide, peek, and shoot rabbits, hens, boar, and deer. Stay exposed too long or miss a shot, and the animals will be spooked.
+- **A real little economy.** 22 goods, each with its own coin pool and a 0.3% fee. Prices change with every trade, goods-to-goods swaps route through two pools, and random events (bumper harvest, drought, sea storm, livestock plague, village festival, and trade ship) shake things up.
+- **Market agents.** Bu Sari, Pak Bayu, Pak Joko, and others produce goods, shop, list items at stalls, and arbitrage using their own wallets. Put your goods up for sale and see who buys them.
+- **Fast mode.** Use `+1 HOUR`, `18:00`, and `+1 WEEK` to skip ahead. The weekly report shows price changes, events, and how each agent did.
+- **Day and night.** The world darkens at dusk, Mama follows her own daily routine, and your progress is saved in your browser.
+- **Fully synthesized audio.** Music for the menu, town, lake, forest, and restaurant, along with sound effects and villagers' voices, is generated live with the Web Audio API. No audio files are used.
 
 ## Controls
 
-Everything works with a keyboard on a PC and with the on-screen pad on a phone. Nothing needs a mouse,
-but the buttons on screen are clickable too.
+The game supports keyboard controls on PC and an on-screen pad on phones. You don't need a mouse,
+but the on-screen buttons can be clicked too.
 
 ### PC (keyboard)
 
-| What you want to do | Keys |
-|---|---|
-| Walk left / right | `A` / `D`, or `←` / `→` |
-| Walk up / down a depth lane (town, house, restaurant floor) | `W` / `S`, or `↑` / `↓` |
-| Interact: talk, open a door, pick up, grab a dish, serve a plate | `E`, `Space` or `Enter` |
-| Skip one hour | `T` |
-| Jump straight to 18:00 (Mama starts prepping) | the `18:00` button |
-| Jump a whole week (market report) | the `+1 WEEK` button |
-| Open / close the Market Board | `M` |
-| Close a panel, leave fishing or hunting | `Esc` |
-| Fishing: cast, then reel in when the ❗ appears | `E` |
-| Hunting: stay hidden / peek out | hold `Space` or `P` |
-| Hunting: aim | `W` `A` `S` `D`, or the arrow keys |
-| Hunting: shoot | `E` or `Enter` |
-| Mute everything | the speaker button in the corner |
+|| Action | Keys |
+||---|---|
+|| Walk left / right | `A` / `D`, or `←` / `→` |
+|| Walk up / down a depth lane (town, house, restaurant floor) | `W` / `S`, or `↑` / `↓` |
+|| Interact: talk, open a door, pick up an item, grab a dish, or serve a plate | `E`, `Space`, or `Enter` |
+|| Skip one hour | `T` |
+|| Jump to 18:00 (Mama starts prepping) | The `18:00` button |
+|| Jump ahead one week (market report) | The `+1 WEEK` button |
+|| Open / close the Market Board | `M` |
+|| Close a panel, or exit fishing or hunting | `Esc` |
+|| Fishing: cast, then reel in when ❗ appears | `E` |
+|| Hunting: stay hidden / peek out | Hold `Space` or `P` |
+|| Hunting: aim | `W`, `A`, `S`, `D`, or the arrow keys |
+|| Hunting: shoot | `E` or `Enter` |
+|| Mute all audio | The speaker button in the corner |
 
-Movement is held, not tapped: keep `D` pressed to keep walking. In hunting the same keys steer the
-crosshair instead of the player.
+Movement is continuous while a key is held: keep `D` pressed to keep walking. During hunts, the same
+keys steer your crosshair instead of moving your character.
 
 ### Phone
 
-- On-screen pad on the left: `◀ ▶` to walk, `▲ ▼` to change depth, and in hunting to aim.
-- `E` button: interact, cast, reel, shoot.
-- `PEEK` (hold) while hunting, `DONE` / `END HUNT` to leave a minigame.
-- The HUD buttons `+1 HOUR`, `18:00`, `+1 WEEK`, `MARKET` and the speaker do the same as the keys.
+- The on-screen pad on the left: `◀ ▶` to walk, `▲ ▼` to change depth, and to aim while hunting.
+- The `E` button: interact, cast, reel in, or shoot.
+- Hold `PEEK` while hunting. Select `DONE` / `END HUNT` to exit a minigame.
+- The HUD buttons `+1 HOUR`, `18:00`, `+1 WEEK`, `MARKET`, and the speaker button work the same as their keyboard controls.
 
 ## In development
 
-This is a demo build. The following are planned and **not in the build yet**:
+This demo build does not yet include the following planned features:
 
 | Planned | Status |
 |---|---|
@@ -192,42 +191,43 @@ This is a demo build. The following are planned and **not in the build yet**:
 
 ## Run it locally
 
-No build step. Open `index.html` in a browser, or serve the folder:
+No build step is required. Open `index.html` in a browser, or serve the folder locally:
 
 ```bash
 python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-Every market trade runs on the local AMM. Settlement is designed to post to the relayer, and until the
-session handshake is added the game stays on its local simulation, so a dead or refusing endpoint
-never blocks play.
+Every market trade runs through the local AMM. Settlement is designed to use the relayer, but the
+session handshake is not yet implemented. The game therefore stays on its local simulation, so a
+non-responsive or rejecting endpoint cannot interrupt play.
 
 ## Sign in, get a wallet
 
-Sign in as a guest. That is the only path in this build: there is no OAuth, and the Google and X
-plates on the menu picture are placeholders that sign you in as a guest too. The menu says so, and so
-does the sign-in panel.
+Sign in as a guest; that is the only sign-in option in this build. There is no OAuth, and the Google
+and X buttons on the menu illustration are placeholders that also sign you in as a guest. The menu
+and sign-in panel both say so.
 
-Signing in mints a local player identity, something like `guest3058.testnet`, and a starting basket of
-500 coin, 3 wortel, 2 ikan mas and 6 telur. The identity and the save live in `localStorage`: reloading keeps the same player, and
-clearing site data or using incognito gives you a new one.
+Signing in creates a local player identity, such as `guest3058.testnet`, and a starting basket of
+500 coins, 3 carrots, 2 carp, and 6 eggs. Your identity and save are stored in
+`localStorage`: reloading keeps the same player, while clearing site data or using an incognito window
+creates a new one.
 
-The identity is not a keyed NEAR account and cannot be exported or funded. In this build the balances
-you trade against are held in the browser; the on-chain contract is the ledger the goods are meant to
-settle against (see the status below).
+The identity is not a NEAR account with a private key, and it cannot be exported or funded. In this
+build, your balances are stored in the browser. The on-chain contract is the ledger those goods are
+intended to settle against (see the status below).
 
 ## What is on chain
 
-| piece | what is actually there | how to check it |
+| Item | Verified on-chain state | How to check |
 |---|---|---|
-| item ledger | `rumah-resto-market-5959.testnet`, NEP-245 multi-token, deployed and funded | `view_account` on testnet RPC |
-| goods on chain | 18 token ids with live supply (`coin` 6700, `telur` 100, `beras` 80, `wortel` 40, ...) | `totals()` |
-| market agents | `sari.testnet`, `bayu.testnet` and `joko.testnet` exist and hold token balances (Sari: apel, bawang, bayam, coin, ikanmas, jagung, kentang, telur, tomat) | `mt_tokens_for_owner` |
-| ledger history | 30 entries in `recent()`, last one 2026-11-11 22:11 UTC; 23 of them are transfers to player accounts such as `ce5704793188.players.cozy.testnet` | `recent(30)` |
-| your wallet in this build | `guestNNNN.testnet` identity in `localStorage`, balances in the local save | in game, sign in as guest |
-| trades in this build | AMM pools in the browser, 0.3% fee, price moves on every trade | swap the same good four times |
-| settlement from this build | **not enabled**: the relayer answers `401 {"ok":false,"error":"no session"}` | POST to the relayer's `/trade` |
+| Item ledger | `rumah-resto-market-5959.testnet`, a deployed and funded NEP-245 multi-token contract | `view_account` on NEAR testnet RPC |
+| Goods on-chain | 18 token IDs with live supply (coin: 6,700; egg: 100; rice: 80; carrot: 40; and more) | `totals()` |
+| Market agents | `sari.testnet`, `bayu.testnet`, and `joko.testnet` exist and hold token balances (Sari: apples, onions, spinach, coins, carp, corn, potatoes, eggs, and tomatoes) | `mt_tokens_for_owner` |
+| Ledger history | 30 entries in `recent()`, latest at 2026-11-11 22:11 UTC; 23 are transfers to player accounts such as `ce5704793188.players.cozy.testnet` | `recent(30)` |
+| Your in-game identity | `guestNNNN.testnet`, stored in `localStorage`; balances are in the local save | Sign in as a guest in the game |
+| Trades in this build | AMM pools in the browser, with a 0.3% fee and prices that change on every trade | Swap the same good four times |
+| Settlement in this build | **Not enabled:** the relayer responds with `401 {"ok":false,"error":"no session"}` | POST to the relayer's `/trade` |
 
 Click **LEDGER** in game to read the contract's live state from testnet RPC.
 
@@ -255,21 +255,19 @@ relayer's own logic and is not reachable without a session, so treat it as desig
 claim.
 
 Where goods come from: Bu Sari stocks produce, Pak Bayu stocks fish, Pak Joko stocks meat and
-staples. A purchase moves coin to the market wallet and the goods from whichever agent actually
-holds them.
+staples. A purchase sends coins to the market wallet and transfers the goods from whichever agent holds them.
 
 ## Honest scope
 
-Everything you trade in this build is simulated in the browser: the AMM pools, your balances and the
-prices all live in the local save, and nothing is written to the ledger while the session handshake is
-missing. What is on chain today is the deployed NEP-245 contract, 18 goods with supply, the three agent
-accounts with their own balances, and the transfer trail left by an earlier build.
+Everything traded in this build is simulated in the browser: the AMM pools, player balances, and prices
+are stored in the local save. The game does not write trades to the ledger while the session handshake
+is missing. The on-chain state consists of the deployed NEP-245 contract, 18 goods with supply, three
+agent accounts with their own balances, and the transfer history left by an earlier build.
 
-Gathered goods are local too: fish you catch and animals you hunt live in the browser's save.
-Ingredients you buy at the market are in the same save.
+Fish and hunted animals are stored in the browser's save. Market ingredients you buy are stored there too.
 
-There is no per-player NEAR account, no wallet connect and no withdrawal. Supply changes only through
-trades, never through minting.
+There is no individual NEAR account, wallet connection, or withdrawal for players. Supply changes
+only through trades, never through minting.
 
 ## Contract
 
@@ -279,4 +277,4 @@ trades, never through minting.
 
 ## Credits
 
-Built for a hackathon by [valenciayuna](https://github.com/valenciayuna). This is one of two independent entries by the same builder. The other is [Q-DAY](https://github.com/valenciayuna/q-day), a post-quantum beat 'em up. Different repos, different builds, no shared code.
+Built for a hackathon by [valenciayuna](https://github.com/valenciayuna). This is one of two independent entries by the same creator. The other is [Q-DAY](https://github.com/valenciayuna/q-day), a post-quantum beat 'em up. The projects have separate repositories and builds, with no shared code.
