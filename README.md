@@ -41,7 +41,7 @@ your market purchases the next day.
 
 - **Track:** `games` — Games With Real Economies
 - **Repository:** https://github.com/valenciayuna/cozy-hood-trails (public, MIT)
-- **Demo:** posted on X with the demo video, tagged @NEARProtocol and #NEARHackathon
+- **Demo:** [Watch the gameplay video on X](https://x.com/nauvalennn/status/2121880825725915193) (187 seconds; includes the public game link)
 - **Sibling entry:** [Q-DAY](https://github.com/valenciayuna/q-day), an independent project in its own
   repo with no shared code; its README names this one in return (Q-015)
 
