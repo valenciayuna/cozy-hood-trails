@@ -227,7 +227,7 @@ intended to settle against (see the status below).
 | Ledger history | 30 entries in `recent()`, latest at 2026-11-11 22:11 UTC; 23 are transfers to player accounts such as `ce5704793188.players.cozy.testnet` | `recent(30)` |
 | Your in-game identity | `guestNNNN.testnet`, stored in `localStorage`; balances are in the local save | Sign in as a guest in the game |
 | Trades in this build | AMM pools in the browser, with a 0.3% fee and prices that change on every trade | Swap the same good four times |
-| Settlement in this build | **Not enabled:** the relayer responds with `401 {"ok":false,"error":"no session"}` | POST to the relayer's `/trade` |
+| Settlement in this build | **Not enabled:** the game never requests a session token, so there is no relayer endpoint configured. The built-in `fetch` stub returns `401 {"ok":false,"error":"no session"}`; the tunnel that exposed `/trade` has been closed | Start the local relayer (`relayer/server.js`) and point the game at its URL, or inspect the stub in the client source |
 
 Click **LEDGER** in game to read the contract's live state from testnet RPC.
 
@@ -248,7 +248,7 @@ The relayer is designed to enforce three rules:
 - your own wallet has to be one side of the trade
 - the other side must be an agent wallet, and agent-to-agent trades are refused
 
-What is verified from outside today: a request with no session comes back
+What was verified while the tunnel was up: a request with no session came back
 `401 {"ok":false,"error":"no session"}`, and `mt_mint` asserts the owner, so a relayer key restricted to
 `settle` and `mt_transfer` cannot mint new supply. The wallet-side rule (`403 not your wallet`) is the
 relayer's own logic and is not reachable without a session, so treat it as design, not as a tested
