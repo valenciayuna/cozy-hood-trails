@@ -227,7 +227,7 @@ intended to settle against (see the status below).
 | Ledger history | 30 entries in `recent()`, latest at 2026-11-11 22:11 UTC; 23 are transfers to player accounts such as `ce5704793188.players.cozy.testnet` | `recent(30)` |
 | Your in-game identity | `guestNNNN.testnet`, stored in `localStorage`; balances are in the local save | Sign in as a guest in the game |
 | Trades in this build | AMM pools in the browser, with a 0.3% fee and prices that change on every trade | Swap the same good four times |
-| Settlement in this build | **Not enabled:** the game never requests a session token, so there is no relayer endpoint configured. The built-in `fetch` stub returns `401 {"ok":false,"error":"no session"}`; the tunnel that exposed `/trade` has been closed | Start the local relayer (`relayer/server.js`) and point the game at its URL, or inspect the stub in the client source |
+| Settlement in this build | **Not enabled:** the client posts to `/trade` but never sends a session token, so no trade is ever accepted. The endpoint was a Cloudflare tunnel that is now closed (`NXDOMAIN`); a dead endpoint is caught by `fetch(...).catch` and gameplay continues on the local AMM | Run a relayer at the URL in `RELAYER` (line 1267 of `index.html`), add the session handshake, then POST `{from,to,token,amount,session}`; or watch the in-game log's `intent_swap` entry to see what would have been sent |
 
 Click **LEDGER** in game to read the contract's live state from testnet RPC.
 
