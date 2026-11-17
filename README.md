@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Fish and hunt by day. Cook and serve a packed restaurant by night.</b><br>
-  A cozy life sim with a living market, playable right in your browser.
+  A cozy life sim with a locally simulated market, playable right in your browser.
 </p>
 
 <p align="center">
@@ -24,43 +24,32 @@
   <img src="docs/hero.gif" alt="READY, GO! The restaurant opens for the night" width="720">
 </p>
 
-Play as a fisher and hunter by day, then run a restaurant by night. The game's 22-goods market
-changes prices with every trade, and the restaurant's earnings fund your market purchases the next day.
+Play as a fisher and hunter by day, then run a restaurant by night. This prototype explores how a changing market can add choices to a cozy life sim. The market simulation runs locally in the browser; the separate NEAR testnet ledger panel is read-only in this build.
 
 **Play:** https://valenciayuna.github.io/cozy-hood-trails/
 
-## What this is, and the problem it solves
+## What this is, and what NEAR does
 
-Most cozy sims have a fake market: prices stay fixed and the shop's money comes from nowhere.
-This one gives all 22 goods a small real market: each good has its own coin pool, prices shift with every
-trade, and the shopkeepers are agents with their own wallets who restock, undercut each other, and
-arbitrage. You fish and hunt by day, then run a restaurant by night. The restaurant's earnings fund
-your market purchases the next day.
+Cozy Hood Trails is a browser life-sim prototype with fishing, hunting, restaurant management, and a simulated 22-good market. Prices and NPC trading activity change as the local simulation runs.
+
+The market is **not an on-chain economy** in this build:
+
+| Feature | Actual implementation |
+|---|---|
+| Market pools, prices, NPC behavior, player inventory and trades | Local JavaScript simulation; saved in the browser with `localStorage` |
+| Guest identity | Local label stored by the game; not a NEAR account, wallet, or social login |
+| Market activity log | Local simulation log; method names such as `mt_transfer` do not themselves prove a chain transaction |
+| NEAR item ledger | Separate deployed testnet contract at `rumah-resto-market-5959.testnet`; the in-game LEDGER panel reads contract state over testnet RPC |
+| Game-to-contract market settlement | Not verified in this build; local trades complete independently of any relay response, so a request or log entry is not proof of settlement |
+
+The contract and its testnet state are a real NEAR component. The game reads its ledger state and also contains a relay request/response path for market-related events, but no successful game-triggered settlement has been verified. Ledger balances/history are separate from the browser's simulated market and player save. No claim is made here that NPCs or players control on-chain wallets, or that gameplay trades settle on-chain.
 
 ## NEAR HACKATHON submission
 
-- **Track:** `games` — Games With Real Economies
+- **Track submitted:** `games` — Games With Real Economies. The market/economy gameplay is a local prototype, not a live on-chain game economy.
 - **Repository:** https://github.com/valenciayuna/cozy-hood-trails (public, MIT)
 - **Demo:** [Watch the gameplay video on X](https://x.com/nauvalennn/status/2121880825725915193) (187 seconds; includes the public game link)
-- **Sibling entry:** [Q-DAY](https://github.com/valenciayuna/q-day), an independent project in its own
-  repo with no shared code; its README names this one in return (Q-015)
-
-What NEAR does here, concretely:
-
-- the goods ledger is a NEP-245 multi-token contract on testnet
-  (`rumah-resto-market-5959.testnet`), deployed and funded, exposing `mt_transfer`,
-  `mt_batch_transfer`, `mt_balance_of`, `mt_batch_balance_of`, `mt_tokens_for_owner`, `mt_supply`,
-  `recent(n)` and a backend-signed `settle(from, to, token_id, amount)`;
-- Market agents are real testnet accounts holding their own goods: `sari.testnet` (produce and
-  staples), `bayu.testnet` (fish), and `joko.testnet` (meat and staples). Their holdings are
-  verifiable with `mt_tokens_for_owner`, so the ledger records transfers between accounts rather
-  than activity in a database;
-- trades are recorded as intents (`intent_swap` with `token_in`, `token_out`, `amount_in`, `solver`), a
-  shape a solver can route later;
-- sign-in is a one-click guest identity: no wallet extension, no seed phrase, no key in the browser.
-
-The contract is deployed and funded. Settlement is **not enabled in this build** (see below), so the
-market you play against runs in the browser. This track is judged on the game loop, not the token.
+- **Sibling entry:** [Q-DAY](https://github.com/valenciayuna/q-day), an independent project in its own repo with no shared code; its README names this one in return (Q-015)
 
 ### Baseline and what was built during the window (Q-001, Q-003, Q-004)
 
@@ -198,82 +187,38 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-Every market trade runs through the local AMM. Settlement is designed to use the relayer, but the
-session handshake is not yet implemented. The game therefore stays on its local simulation, so a
-non-responsive or rejecting endpoint cannot interrupt play.
+Every market action in this build updates the browser simulation. The visible market log records local events only; entries named `intent_swap` or `mt_transfer` are not chain transactions.
 
-## Sign in, get a wallet
+## Identity and saved game
 
-Sign in as a guest; that is the only sign-in option in this build. There is no OAuth, and the Google
-and X buttons on the menu illustration are placeholders that also sign you in as a guest. The menu
-and sign-in panel both say so.
+Choose **Play as guest** to start. The game creates a local label such as `guest3058.testnet`; despite its suffix, this label is not a NEAR account. Player inventory, market balance and progress are stored in the browser's `localStorage`. Google and X buttons shown in the menu artwork are placeholders, not OAuth sign-in.
 
-Signing in creates a local player identity, such as `guest3058.testnet`, and a starting basket of
-500 coins, 3 carrots, 2 carp, and 6 eggs. Your identity and save are stored in
-`localStorage`: reloading keeps the same player, while clearing site data or using an incognito window
-creates a new one.
+## NEAR ledger: separate panel
 
-The identity is not a NEAR account with a private key, and it cannot be exported or funded. In this
-build, your balances are stored in the browser. The on-chain contract is the ledger those goods are
-intended to settle against (see the status below).
+The **LEDGER** panel queries the deployed contract `rumah-resto-market-5959.testnet` over NEAR testnet RPC. The contract has token balances, total supplies and a transfer-history view. These are contract state and can be inspected independently of the game save.
 
-## What is on chain
-
-| Item | Verified on-chain state | How to check |
+| Area | Status in this build | Evidence / boundary |
 |---|---|---|
-| Item ledger | `rumah-resto-market-5959.testnet`, a deployed and funded NEP-245 multi-token contract | `view_account` on NEAR testnet RPC |
-| Goods on-chain | 18 token IDs with live supply (coin: 6,700; egg: 100; rice: 80; carrot: 40; and more) | `totals()` |
-| Market agents | `sari.testnet`, `bayu.testnet`, and `joko.testnet` exist and hold token balances (Sari: apples, onions, spinach, coins, carp, corn, potatoes, eggs, and tomatoes) | `mt_tokens_for_owner` |
-| Ledger history | 30 entries in `recent()`, latest at 2026-11-11 22:11 UTC; 23 are transfers to player accounts such as `ce5704793188.players.cozy.testnet` | `recent(30)` |
-| Your in-game identity | `guestNNNN.testnet`, stored in `localStorage`; balances are in the local save | Sign in as a guest in the game |
-| Trades in this build | AMM pools in the browser, with a 0.3% fee and prices that change on every trade | Swap the same good four times |
-| Settlement in this build | **Not enabled:** the client posts to `/trade` but never sends a session token, so no trade is ever accepted. The endpoint was a Cloudflare tunnel that is now closed (`NXDOMAIN`); a dead endpoint is caught by `fetch(...).catch` and gameplay continues on the local AMM | Run a relayer at the URL in `RELAYER` (line 1267 of `index.html`), add the session handshake, then POST `{from,to,token,amount,session}`; or watch the in-game log's `intent_swap` entry to see what would have been sent |
+| Contract deployment and ledger reads | Deployed; panel performs testnet RPC view calls | Contract account and view methods in `contract-src/lib.rs`; panel RPC calls in `index.html` |
+| In-game pools, NPC activity, player balance and stalls | Local simulation | JavaScript state and `localStorage` in `index.html` |
+| Game-triggered market settlement | Not verified in this build | Market actions update local state, while a relay request and response path exists; no successful game-triggered contract settlement was verified, so the path is not presented as working |
+| Player wallet / social login | Not implemented | Guest label is local; no player key or OAuth flow |
 
-Click **LEDGER** in game to read the contract's live state from testnet RPC.
-
-So the ledger is real and it has settled before: those `players.cozy.testnet` wallets in the trail are
-from the build that issued them. The build in this repo asks for a guest identity and never requests a
-session token, so its trades stay in the browser. The game is built to keep playing when the endpoint
-refuses; the in-game log (`intent_swap`, `social_login`) records what would have been sent.
-
-## How settlement is guarded
-
-The browser never holds a key. It is built to post `{from, to, token, amount, session}` to the
-relayer, which signs `settle` with a function-call key restricted to `settle` and `mt_transfer` on
-this contract. The session step is the one missing in this build (see the status table above).
-
-The relayer is designed to enforce three rules:
-
-- a request must carry a valid session token
-- your own wallet has to be one side of the trade
-- the other side must be an agent wallet, and agent-to-agent trades are refused
-
-What was verified while the tunnel was up: a request with no session came back
-`401 {"ok":false,"error":"no session"}`, and `mt_mint` asserts the owner, so a relayer key restricted to
-`settle` and `mt_transfer` cannot mint new supply. The wallet-side rule (`403 not your wallet`) is the
-relayer's own logic and is not reachable without a session, so treat it as design, not as a tested
-claim.
-
-Where goods come from: Bu Sari stocks produce, Pak Bayu stocks fish, Pak Joko stocks meat and
-staples. A purchase sends coins to the market wallet and transfers the goods from whichever agent holds them.
+A historical transfer in the ledger proves that the contract has recorded transfers; by itself, it does not prove a current game action caused that transfer. The README makes no claim that the currently playable market is on-chain.
 
 ## Honest scope
 
-Everything traded in this build is simulated in the browser: the AMM pools, player balances, and prices
-are stored in the local save. The game does not write trades to the ledger while the session handshake
-is missing. The on-chain state consists of the deployed NEP-245 contract, 18 goods with supply, three
-agent accounts with their own balances, and the transfer history left by an earlier build.
+Cozy Hood Trails is a playable life-sim prototype whose changing market, NPC behavior and player economy are simulated in the browser. NEAR provides a separate testnet item ledger that the game can read; market trades in this build do not settle to it. There is no player-owned on-chain wallet or live game economy in this build.
 
-Fish and hunted animals are stored in the browser's save. Market ingredients you buy are stored there too.
+## Contract source and tests
 
-There is no individual NEAR account, wallet connection, or withdrawal for players. Supply changes
-only through trades, never through minting.
+The Rust source is `contract-src/lib.rs` and the manifest is `contract-src/Cargo.toml`. From `contract-src/`, run:
 
-## Contract
+```sh
+cargo test
+```
 
-`rumah-resto-market-5959.testnet` implements NEP-245 multi-token: `mt_mint` (owner only),
-`mt_transfer`, `mt_batch_transfer`, `mt_balance_of`, `mt_batch_balance_of`, `mt_tokens_for_owner`,
-`mt_supply`, `recent(n)` and `settle(from, to, token_id, amount)` for backend-signed trades.
+The contract exposes `mt_mint` (owner-only), `mt_transfer`, `mt_batch_transfer`, balance and supply views, `recent(n)`, and owner-authorized `settle(from, to, token_id, amount)`. It uses NEP-245-style method names; this README does not claim full standard conformance or an audit.
 
 ## Credits
 
